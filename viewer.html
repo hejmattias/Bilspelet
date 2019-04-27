@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<title>Björnstammen KROCK</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+	<style>
+
+		{ padding: 0; margin: 0; }
+
+		canvas {
+			 display: block;
+			 margin: 0 auto;
+		}
+
+
+		video {
+			height: 100%auto;
+			width: 100%;
+			display: inline-flex;
+		}
+
+		#container {
+			position: fixed;
+			bottom: 0;
+			top: 0;
+			left: 0;
+			right: 0;
+			background: #ffffff;
+
+		}
+
+	</style>
+
+
+	</head>
+	<body>
+		<!-- Standard shim for WebRTC browser compatibility -->
+			<script src="adapter-latest.js"></script>
+				<!-- //////////////////VIDEO CONTAINER//////////////////// -->
+			<div id="container"><video id="video" playsinline></video></div>
+
+
+			<!-- //////////////////TOUCH CANVAS//////////////////// -->
+			<canvas id="myCanvas" width="100%" height="100%"></canvas>
+
+
+
+<!-- /////////////////////////////////SVART RUTA///////////////////////// -->
+
+
+		<div id="startruta" style="position: absolute;top:0;left:0;width: 100%;height:800px;z-index: 5;">
+		<img id ="image" style="width: 100%;height: 800px;display:block; position: relative; margin:auto" src="https://www.svtstatic.se/image-cms/svtse/1422003365/svts/article2624117.svt/alternates/extralarge/svartruta-jpg" />
+		</div>
+		<div id="mitt" style="position: absolute;top:0;left:0;width: 100%;height:800px;z-index: 4;">
+		<img id ="vanstertouch" style="width: 150px;height: 100px;display:block;  opacity: 0.5; position: fixed; bottom:0;left:0; margin:auto" src="vanster.png"/>
+		<img id ="hogertouch" style="width: 150px;height: 100px; display:block;  opacity: 0.5; position: fixed; bottom:0;right:0; margin:auto" src="hoger.png"/>
+		</div>
+
+
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script>
+
+/////////////TOUCH SETUP
+// INIT
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+var playerHeight = 110;
+var playerWidth = 92;
+var playerX = (canvas.width - playerWidth) / 2;
+var playerY = (canvas.height - playerHeight) / 2;
+
+			var spelkontroll = 1;
+			var mobil = 0;
+			document.getElementById("hogertouch").style.visibility = "hidden";
+			document.getElementById("vanstertouch").style.visibility = "hidden";
+
+		if( /Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent) ) {
+		    mobil = 1;
+				document.getElementById("hogertouch").style.visibility = "visible";
+				document.getElementById("vanstertouch").style.visibility = "visible";
+
+				// Disable scrolling.
+				document.addEventListener('touchstart', function (e) {
+						e.preventDefault();
+				});
+
+				/////////////////PREVENT Double touch zoom///////////
+
+					var lastTouchEnd = 0;
+					document.addEventListener('touchend', function (event) {
+  				var now = (new Date()).getTime();
+  				if (now - lastTouchEnd <= 300) {
+    			event.preventDefault();
+  				}
+  			lastTouchEnd = now;
+				}, false);
+
+
+	}
+
+
+
+			//////////////////////////////////////	// Fade Svart ruta
+
+			document.getElementById("startruta").onclick = function() {myFunction()};
+
+
+		function myFunction() {
+				setTimeout(function(){
+						playVid();
+				    jQuery(function(){
+				   $("#image").fadeOut("slow");
+				});
+				//alert("Hello");
+				}, 1);
+			}
+				var vid = document.getElementById("video");
+				function playVid() {
+					vid.controls = false;
+				  vid.play();
+				}
+
+
+
+
+if (spelkontroll == 1){
+
+		//////////////////////////////////////WebSocket
+
+		if('WebSocket' in window) {
+		    //use the following if the server IP is static and known
+
+		  //var ws = new WebSocket("ws://hejdsb.ddns.net:8025/dsb");
+		  //var ws = new WebSocket("ws://dsb.zapto.org:8080/dsb");
+		 var ws = new WebSocket("ws://192.168.8.101:8024/dsb");
+
+		  //use the following instead if the server IP is dynamic, the URL will then be:
+		  //http://<server_URL>?sIP=<IP_of_server>:<port>
+		  //http://stackoverflow.com/questions/979975/how-to-get-the-value-from-url-parameter
+		  //var ws = new WebSocket("ws://"+location.search.split('sIP=')[1]);
+
+		    ws.onopen = function() {
+		      //alert("CONNECTIIIONNN");
+		      //ws.send( {'test': 'message'} );
+		      console.log('connected');
+		      ws.send('connected');
+		    };
+
+		  ws.onmessage = function (message) {
+		              //alert(message.data);
+		              console.log(message.data);
+		              if (message.data == "skickaut"){window.location.assign("https://www.w3schools.com")}
+		          }
+
+		    ws.onclose = function(evt) {
+		     //alert("Connection closed");
+		    };
+
+		    ws.onerror = function(evt) {
+		  if(ws) alert("Error: " + evt.data);
+		  else alert("Cannot connect to server");
+		    };
+
+		    //ws.onmessage = function(evt) {
+		    //  alert("Got a message: " + evt.data);
+		    //};
+
+
+
+		} else {
+		  alert("Your browser does not support the WebSockets API");
+		}
+
+
+
+
+/////////////////////////KEYBOARD
+		var V = 0;//Vänster
+		var H = 0;//Höger
+		var L = 0; //Led
+
+window.addEventListener("keydown", checkKeyPressed, false);
+window.addEventListener("keyup", checkKeyReleased, false);
+
+function checkKeyPressed(e) {
+if (e.keyCode == "37" && V == 0) {
+	V = 1;
+	 ws.send("V1,");
+	//console.log('skickade V1');
+}
+else if (e.keyCode == "39" && H == 0) {
+
+	 H = 1;
+	 ws.send('H1,');
+	//console.log('skickade H1');
+}
+else if (e.keyCode == "76" && L == 0) {
+
+	 L = 1;
+	 ws.send('L1,');
+	//console.log('skickade led1');
+}
+
+}
+
+function checkKeyReleased(e) {
+if (e.keyCode == "37") {
+	V = 0;
+	 ws.send("V0,");
+	//console.log('skickade V0');
+}
+else if (e.keyCode == "39") {
+	H = 0;
+	 ws.send('H0,');
+	//console.log('skickade H0');
+
+}
+else if (e.keyCode == "76") {
+	L = 0;
+	 ws.send('L0,');
+	//console.log('skickade led0');
+
+}
+
+
+}
+
+
+////////////////////////////////// TOUCH
+
+if (mobil ==1){
+var H = 0;
+var V = 0;
+
+	// TOUCH
+	document.addEventListener("touchstart", touchHandler);
+	document.addEventListener("touchmove", touchHandler);
+	function touchHandler(e) {
+			if(e.touches) {
+
+					playerX = e.touches[0].pageX - canvas.offsetLeft - playerWidth / 2;
+					playerY = e.touches[0].pageY - canvas.offsetTop - playerHeight / 2;
+					mitt.innerHTML = "Touch:  <br />"+ " x: " + playerX + ", y: " + playerY;
+
+					if (playerX >0) {
+						if (V == 1){
+									ws.send("V0,");
+									V = 0;
+									}
+						if (H==0){
+						ws.send("H1,");
+						 H = 1;
+						console.log('skickade H1 och V0');
+					}
+					}
+
+					if (playerX <0) {
+									if (H == 1){
+										ws.send("H0,");
+										H = 0;
+									}
+							if (V==0){
+						 	ws.send("V1,");
+							V = 1;
+						}
+					}
+
+					e.preventDefault();
+			}
+	}
+
+	document.addEventListener("touchend", handleEnd);
+
+	function handleEnd(event){
+			ws.send("H0,");
+			H = 0;
+			console.log('skickade H0');
+			ws.send("V0,");
+			V = 0;
+			console.log('skickade V0'); }
+
+
+
+	}
+}
+</script>
+
+	<script> //Millicast streaming
+
+		let params = new URLSearchParams(document.location.search.substring(1));
+		const streamId = params.get('streamId');
+		console.log('Millicast Viewer Stream: ',streamId);
+		//URL to millicast media server
+		const url = "wss://live.millicast.com:443/ws/v1/sub";
+    const turnUrl = 'https://turn.millicast.com/webrtc/_turn';
+		//Ice Servers:
+		let iceServers = [];
+
+		function connect() {
+			console.log('connecting to: ',url);
+			//create Peer connection object
+      let conf = {
+          iceServers : iceServers,
+          // sdpSemantics : "unified-plan",
+				  rtcpMuxPolicy : "require",
+				  bundlePolicy : "max-bundle"
+      };
+      console.log('config: ', conf);
+      let pc = new RTCPeerConnection( conf );
+      //Listen for track once it starts playing.
+			pc.ontrack = function(event) {
+				console.debug("pc::onAddStream",event);
+				//Play it
+				let vidWin = document.getElementsByTagName('video')[0];
+				if(vidWin) {
+					vidWin.srcObject = event.streams[0];
+					vidWin.controls = true;
+				}
+			};
+
+			//connect with Websockets for handshake to media server.
+			let ws = new WebSocket(url);
+			ws.onopen = function(){
+				//Connect to our media server via WebRTC
+				console.log('ws::onopen');
+				//if this is supported
+				/* if (pc.addTransceiver) {
+					console.log('transceiver!');
+					//Create dummy stream
+					const stream = new MediaStream();
+					//Create all the receiver tracks
+					pc.addTransceiver("audio",{
+						direction       : "recvonly",
+							streams         : [stream]
+					});
+					pc.addTransceiver("video",{
+						direction       : "recvonly",
+							streams         : [stream]
+					});
+				} */
+
+				//create a WebRTC offer to send to the media server
+				let offer = pc.createOffer({
+					offerToReceiveAudio: true,
+					offerToReceiveVideo: true
+				}).then( desc => {
+					console.log('createOffer Success!');
+					//set local description and send offer to media server via ws.
+					pc.setLocalDescription(desc)
+						.then( () => {
+							console.log('setLocalDescription Success!');
+							//set required information for media server.
+							let data = {
+								streamId : streamId,//Millicast viewer streamId
+								sdp		: desc.sdp
+							}
+								//feedId	: streamId,
+							//create payload
+							let payload = {
+								type	: "cmd",
+								transId	: 0,
+								name	: 'view',
+								data	: data
+							}
+							console.log('send ',payload);
+							ws.send( JSON.stringify(payload) );
+						})
+						.catch(e => {
+							console.log('setLocalDescription failed: ',e);
+						})
+				}).catch( e => {
+					console.log('createOffer Failed: ',e)
+				});
+			}
+
+			ws.addEventListener('message', evt => {
+				console.log('ws::message',evt);
+				let msg = JSON.parse(evt.data);
+				switch(msg.type){
+					//Handle counter response coming from the Media Server.
+					case "response":
+						let data = msg.data;
+						let answer = new RTCSessionDescription({
+							type: 'answer',
+							sdp : data.sdp
+						});
+
+						pc.setRemoteDescription(answer)
+							.then(d => {
+								console.log('setRemoteDescription  Success! ');
+							})
+							.catch(e => {
+								console.log('setRemoteDescription failed: ',e);
+							});
+						break;
+				}
+			})
+		}
+
+		// Gets ice servers.
+		function getICEServers(){
+			return new Promise( (resolve, reject) => {
+				let xhr = new XMLHttpRequest();
+				xhr.onreadystatechange = function(evt){
+					if(xhr.readyState == 4) {
+						let res = JSON.parse(xhr.responseText), a;
+						console.log('getICEServers::status:',xhr.status,' response: ',xhr.responseText);
+						switch(xhr.status){
+							case 200:
+								//returns array.
+								let list = res.v.iceServers;
+								a = [];
+								//call returns old format, this updates URL to URLS in credentials path.
+								list.forEach(cred => {
+									let v = cred.url;
+									if(!!v) { cred.urls = v; delete cred.url; }
+									a.push(cred);
+									//console.log('cred:',cred);
+								});
+								console.log('ice: ',a);
+								resolve(a);
+								break;
+							default:
+								a = [];
+								//reject(xhr.responseText);
+								//failed to get ice servers, resolve anyway to connect w/ out.
+								resolve(a);
+								break;
+						}
+					}
+				}
+				xhr.open("PUT", turnUrl, true);
+				xhr.send();
+			})
+		}
+
+
+
+		function ready(){
+			let v = document.getElementsByTagName('video')[0];
+			if(v){
+				v.addEventListener("click", evt => {
+					v.play();
+				});
+			}
+			//connect();
+
+			// get a list of Xirsys ice servers.
+			getICEServers()
+				.then(list => {
+                    iceServers = list;
+					//ready to connect.
+					connect();
+				});
+		}
+
+		if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading"){
+			ready();
+		} else {
+			document.addEventListener('DOMContentLoaded', ready );
+		}
+	</script>
+	</body>
+
+</html>
