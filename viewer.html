@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-	<title>Björnstammen KROCK</title>
+	<title>KROCKA inte Björnstammen</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
 	<style>
@@ -42,17 +42,18 @@
 
 
 			<!-- //////////////////TOUCH CANVAS//////////////////// -->
-			<canvas id="myCanvas" width="100%" height="100%"></canvas>
+			<canvas id="Touchcanvas" width="100%" height="100%"></canvas>
 
 
 
 <!-- /////////////////////////////////SVART RUTA///////////////////////// -->
 
 
-		<div id="startruta" style="position: absolute;top:0;left:0;width: 100%;height:800px;z-index: 5;">
-		<img id ="image" style="width: 100%;height: 800px;display:block; position: relative; margin:auto" src="https://www.svtstatic.se/image-cms/svtse/1422003365/svts/article2624117.svt/alternates/extralarge/svartruta-jpg" />
+		<div id="Blockruta" style="position: absolute;top:0;left:0;width: 100%;height:auto;z-index: 5;">
+
+		<img id ="image" style="position: fixed; max-width:100%;max-height:100%;display:block; position: relative; margin:auto" src="laddar.png" />
+
 		</div>
-		<div id="mitt" style="position: absolute;top:0;left:0;width: 100%;height:800px;z-index: 4;">
 		<img id ="vanstertouch" style="width: 150px;height: 100px;display:block;  opacity: 0.5; position: fixed; bottom:0;left:0; margin:auto" src="vanster.png"/>
 		<img id ="hogertouch" style="width: 150px;height: 100px; display:block;  opacity: 0.5; position: fixed; bottom:0;right:0; margin:auto" src="hoger.png"/>
 		</div>
@@ -63,16 +64,18 @@
 		<script>
 
 /////////////TOUCH SETUP
-// INIT
-var canvas = document.getElementById("myCanvas");
+// INI
+var canvas = document.getElementById("Touchcanvas");
 var ctx = canvas.getContext("2d");
 var playerHeight = 110;
 var playerWidth = 92;
 var playerX = (canvas.width - playerWidth) / 2;
 var playerY = (canvas.height - playerHeight) / 2;
 
-			var spelkontroll = 1;
+			var spelkontroll = 0;
 			var mobil = 0;
+			let readytoplay = 0;
+
 			document.getElementById("hogertouch").style.visibility = "hidden";
 			document.getElementById("vanstertouch").style.visibility = "hidden";
 
@@ -104,23 +107,45 @@ var playerY = (canvas.height - playerHeight) / 2;
 
 			//////////////////////////////////////	// Fade Svart ruta
 
-			document.getElementById("startruta").onclick = function() {myFunction()};
+			document.getElementById("Blockruta").onclick = function() {playVid()};
+
+			var vid = document.getElementById("video");
 
 
-		function myFunction() {
-				setTimeout(function(){
-						playVid();
-				    jQuery(function(){
-				   $("#image").fadeOut("slow");
-				});
-				//alert("Hello");
-				}, 1);
+		function fadeFunction() {
+			$(document).ready(function(){
+				$("#image").fadeOut(1000);
+			});
+
 			}
-				var vid = document.getElementById("video");
+
 				function playVid() {
-					vid.controls = false;
+					if (readytoplay == 1){
+						console.log('video = play');
 				  vid.play();
 				}
+			//	return false;
+			}
+
+
+function readyFunction(){
+	console.log('Ready to play');
+document.getElementById('image').src='spela.png'
+ readytoplay = 1;
+ vid.controls = false;
+
+
+}
+
+
+    vid.addEventListener("timeupdate", function() {
+        if (this.currentTime >= 1.000){
+        //   console.log('LOADED');
+					 fadeFunction();
+        }
+    }, false);
+
+
 
 
 
@@ -130,37 +155,28 @@ if (spelkontroll == 1){
 		//////////////////////////////////////WebSocket
 
 		if('WebSocket' in window) {
-		    //use the following if the server IP is static and known
 
 		  //var ws = new WebSocket("ws://hejdsb.ddns.net:8025/dsb");
 		  //var ws = new WebSocket("ws://dsb.zapto.org:8080/dsb");
 		 var ws = new WebSocket("ws://192.168.8.101:8024/dsb");
 
-		  //use the following instead if the server IP is dynamic, the URL will then be:
-		  //http://<server_URL>?sIP=<IP_of_server>:<port>
-		  //http://stackoverflow.com/questions/979975/how-to-get-the-value-from-url-parameter
-		  //var ws = new WebSocket("ws://"+location.search.split('sIP=')[1]);
 
 		    ws.onopen = function() {
-		      //alert("CONNECTIIIONNN");
-		      //ws.send( {'test': 'message'} );
 		      console.log('connected');
 		      ws.send('connected');
 		    };
 
+		  ws.onmessage = function (message) {
+		              console.log(message.data);
+		          }
+
 		    ws.onclose = function(evt) {
-		     //alert("Connection closed");
 		    };
 
 		    ws.onerror = function(evt) {
 		  if(ws) alert("Error: " + evt.data);
 		  else alert("Cannot connect to server");
 		    };
-
-		    //ws.onmessage = function(evt) {
-		    //  alert("Got a message: " + evt.data);
-		    //};
-
 
 
 		} else {
@@ -236,7 +252,6 @@ var V = 0;
 
 					playerX = e.touches[0].pageX - canvas.offsetLeft - playerWidth / 2;
 					playerY = e.touches[0].pageY - canvas.offsetTop - playerHeight / 2;
-					mitt.innerHTML = "Touch:  <br />"+ " x: " + playerX + ", y: " + playerY;
 
 					if (playerX >0) {
 						if (V == 1){
@@ -281,7 +296,8 @@ var V = 0;
 }
 </script>
 
-	<script> //Millicast streaming
+<script>
+//Millicast streaming
 
 		let params = new URLSearchParams(document.location.search.substring(1));
 		const streamId = params.get('streamId');
@@ -384,6 +400,7 @@ var V = 0;
 						pc.setRemoteDescription(answer)
 							.then(d => {
 								console.log('setRemoteDescription  Success! ');
+								readyFunction();
 							})
 							.catch(e => {
 								console.log('setRemoteDescription failed: ',e);
@@ -433,6 +450,7 @@ var V = 0;
 
 
 		function ready(){
+
 			let v = document.getElementsByTagName('video')[0];
 			if(v){
 				v.addEventListener("click", evt => {
