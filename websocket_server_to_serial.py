@@ -8,10 +8,14 @@ ser = serial.Serial('/dev/tty.usbmodem14201', 9600)
 class MyServerProtocol(WebSocketServerProtocol):
 
     def onConnect(self, request):
+        self.peer = request.peer
         print("Client connecting: {0}".format(request.peer))
 
     def onOpen(self):
         print("WebSocket connection open.")
+        if "193.93.249.99" not in self.peer:
+            print("closing connection")
+            self.sendClose()
 
     def onMessage(self, payload, isBinary):
         if isBinary:
