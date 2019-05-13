@@ -3,7 +3,7 @@ import serial
 from autobahn.twisted.websocket import WebSocketServerProtocol, \
     WebSocketServerFactory
 
-ser = serial.Serial('/dev/tty.usbmodem14101', 9600)
+ser = serial.Serial('/dev/tty.usbmodem14201', 9600)
 
 class MyServerProtocol(WebSocketServerProtocol):
 
